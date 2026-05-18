@@ -1,0 +1,1380 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+
+  <!-- Geen externe CDN's — alles staat inline in dit bestand -->
+  <style>
+    html, body { margin:0; padding:0; min-height:100vh; width:100%; }
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:      #1a3a4a;
+    --bg2:     #0f2535;
+    --card:    #150c02;
+    --card2:   #1e1206;
+    --gold:    #f0c060;
+    --amber:   #b87818;
+    --accent:  #48A4CC;
+    --text:    #f5e8cc;
+    --muted:   #a08860;
+    --danger:  #e05040;
+    --success: #60b840;
+    --warn:    #e09020;
+    --border:  rgba(240,192,96,0.2);
+    --sidebar: 260px;
+  }
+
+  body { font-family: 'Crimson Text', Georgia, serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  .app { display: flex; min-height: 100vh; }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: var(--sidebar); background: var(--card); border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; position: fixed; top: 0; left: 0; height: 100vh;
+    z-index: 100; transition: transform 0.3s ease;
+  }
+  .sidebar.hidden { transform: translateX(-100%); }
+  .sidebar-brand {
+    padding: 20px 16px; border-bottom: 1px solid var(--border);
+    background: linear-gradient(135deg, var(--card2), #2a1a04);
+  }
+  .sidebar-brand h1 {
+    font-family: 'Cinzel', serif; font-size: 13px; color: var(--gold);
+    letter-spacing: 0.05em; line-height: 1.4; font-weight: 700;
+  }
+  .sidebar-brand .subtitle { font-size: 11px; color: var(--muted); margin-top: 3px; }
+  .sidebar-nav { flex: 1; padding: 12px 0; overflow-y: auto; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px; padding: 12px 20px; cursor: pointer;
+    color: var(--muted); font-size: 15px; transition: all 0.2s; position: relative;
+    border: none; background: none; width: 100%; text-align: left; font-family: inherit;
+  }
+  .nav-item:hover { color: var(--gold); background: rgba(240,192,96,0.05); }
+  .nav-item.active { color: var(--gold); background: rgba(240,192,96,0.1); border-right: 3px solid var(--gold); }
+  .nav-item .icon { font-size: 18px; width: 22px; text-align: center; }
+  .nav-badge {
+    position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+    background: var(--danger); color: #fff; font-size: 11px; font-weight: 700;
+    min-width: 18px; height: 18px; border-radius: 9px; display: flex; align-items: center;
+    justify-content: center; padding: 0 4px; font-family: sans-serif;
+  }
+  .sidebar-user {
+    padding: 16px; border-top: 1px solid var(--border);
+    background: var(--card2);
+  }
+  .sidebar-user .name { font-size: 14px; color: var(--gold); font-weight: 600; }
+  .sidebar-user .role { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .logout-btn {
+    margin-top: 10px; width: 100%; padding: 8px; background: transparent;
+    border: 1px solid var(--border); color: var(--muted); cursor: pointer;
+    font-family: inherit; font-size: 13px; border-radius: 4px; transition: all 0.2s;
+  }
+  .logout-btn:hover { border-color: var(--danger); color: var(--danger); }
+
+  /* ── MAIN ── */
+  .main { flex: 1; margin-left: var(--sidebar); min-height: 100vh; transition: margin 0.3s; }
+  .main.full { margin-left: 0; }
+  .topbar {
+    background: var(--card2); border-bottom: 1px solid var(--border);
+    padding: 14px 24px; display: flex; align-items: center; gap: 16px;
+    position: sticky; top: 0; z-index: 50;
+  }
+  .topbar h2 { font-family: 'Cinzel', serif; font-size: 18px; color: var(--gold); font-weight: 600; }
+  .hamburger { background: none; border: none; color: var(--gold); cursor: pointer; font-size: 22px; display: none; }
+  .content { padding: 24px; max-width: 1100px; }
+
+  /* ── LOGIN ── */
+  .login-screen {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(ellipse at 30% 20%, #1a3a4a 0%, #0a1820 60%, #150c02 100%);
+    position: relative; overflow: hidden;
+  }
+  .login-screen::before {
+    content: '♩♪♫♬'; position: absolute; font-size: 120px; opacity: 0.03;
+    top: 10%; right: 5%; color: var(--gold); pointer-events: none;
+  }
+  .login-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 40px; width: 380px; box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  .login-logo { text-align: center; margin-bottom: 28px; }
+  .login-logo h1 { font-family: 'Cinzel', serif; font-size: 15px; color: var(--gold); letter-spacing: 0.08em; line-height: 1.5; }
+  .login-logo .music-icon { font-size: 40px; display: block; margin-bottom: 10px; }
+  .form-group { margin-bottom: 16px; }
+  .form-group label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+  .form-group input, .form-group select {
+    width: 100%; padding: 10px 14px; background: var(--bg2); border: 1px solid var(--border);
+    color: var(--text); font-family: inherit; font-size: 15px; border-radius: 6px; outline: none;
+    transition: border-color 0.2s;
+  }
+  .form-group input:focus, .form-group select:focus { border-color: var(--gold); }
+  .btn {
+    padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer;
+    font-family: inherit; font-size: 15px; font-weight: 600; transition: all 0.2s;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn-primary { background: var(--gold); color: var(--card); }
+  .btn-primary:hover { background: #f8d080; transform: translateY(-1px); }
+  .btn-secondary { background: transparent; border: 1px solid var(--border); color: var(--text); }
+  .btn-secondary:hover { border-color: var(--gold); color: var(--gold); }
+  .btn-danger { background: var(--danger); color: #fff; }
+  .btn-danger:hover { background: #f06050; }
+  .btn-success { background: var(--success); color: #fff; }
+  .btn-success:hover { background: #70c850; }
+  .btn-sm { padding: 6px 12px; font-size: 13px; }
+  .btn-full { width: 100%; justify-content: center; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 20px; margin-bottom: 16px;
+  }
+  .card-title { font-family: 'Cinzel', serif; font-size: 14px; color: var(--gold); margin-bottom: 14px; letter-spacing: 0.05em; }
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px; }
+  .stat-card {
+    background: var(--card2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 16px; text-align: center;
+  }
+  .stat-value { font-family: 'Cinzel', serif; font-size: 26px; color: var(--gold); font-weight: 700; }
+  .stat-label { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  /* ── BANNER ── */
+  .banner {
+    border-radius: 8px; padding: 12px 16px; margin-bottom: 16px;
+    display: flex; align-items: center; gap: 10px; cursor: pointer;
+    border: 1px solid;
+  }
+  .banner-warn { background: rgba(224,144,32,0.15); border-color: var(--warn); color: var(--warn); }
+  .banner-danger { background: rgba(224,80,64,0.15); border-color: var(--danger); color: var(--danger); }
+  .banner-success { background: rgba(96,184,64,0.15); border-color: var(--success); color: var(--success); }
+
+  /* ── TABLE ── */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th { font-family: 'Cinzel', serif; font-size: 12px; color: var(--muted); padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); letter-spacing: 0.05em; }
+  td { padding: 10px 12px; border-bottom: 1px solid rgba(240,192,96,0.08); vertical-align: middle; }
+  tr:hover td { background: rgba(240,192,96,0.04); }
+
+  /* ── BADGES ── */
+  .badge {
+    display: inline-block; padding: 3px 10px; border-radius: 12px;
+    font-size: 12px; font-weight: 600; font-family: sans-serif;
+  }
+  .badge-open    { background: rgba(224,144,32,0.2); color: var(--warn); border: 1px solid var(--warn); }
+  .badge-paid    { background: rgba(96,184,64,0.2);  color: var(--success); border: 1px solid var(--success); }
+  .badge-expired { background: rgba(224,80,64,0.2);  color: var(--danger); border: 1px solid var(--danger); }
+  .badge-admin   { background: rgba(240,192,96,0.2); color: var(--gold); border: 1px solid var(--gold); }
+
+  /* ── PRODUCT TILES ── */
+  .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
+  .product-tile {
+    background: var(--card2); border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px; text-align: center; transition: all 0.2s; position: relative;
+  }
+  .product-tile.sold-out { opacity: 0.45; }
+  .product-tile.flash { animation: tileFlash 0.35s ease; }
+  @keyframes tileFlash {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.08); border-color: var(--gold); }
+    100% { transform: scale(1); }
+  }
+  .product-emoji { font-size: 32px; display: block; margin-bottom: 8px; }
+  .product-name { font-size: 14px; color: var(--text); font-weight: 600; }
+  .product-price { font-size: 13px; color: var(--gold); margin: 4px 0; }
+  .product-stock { font-size: 11px; color: var(--muted); }
+  .qty-control { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 10px; }
+  .qty-btn {
+    width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--border);
+    background: var(--card); color: var(--gold); cursor: pointer; font-size: 16px;
+    display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+  }
+  .qty-btn:hover:not(:disabled) { background: var(--gold); color: var(--card); }
+  .qty-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .qty-val { font-size: 16px; font-weight: 700; color: var(--text); min-width: 20px; text-align: center; }
+
+  /* ── STOCK COLORS ── */
+  .stock-red { color: var(--danger); }
+  .stock-orange { color: var(--warn); }
+  .stock-green { color: var(--success); }
+
+  /* ── MISC ── */
+  .section-title { font-family: 'Cinzel', serif; font-size: 16px; color: var(--gold); margin-bottom: 16px; letter-spacing: 0.05em; }
+  .text-muted { color: var(--muted); font-size: 13px; }
+  .text-danger { color: var(--danger); }
+  .text-success { color: var(--success); }
+  .text-gold { color: var(--gold); }
+  .mt-8 { margin-top: 8px; } .mt-12 { margin-top: 12px; } .mt-16 { margin-top: 16px; } .mt-24 { margin-top: 24px; }
+  .flex { display: flex; } .flex-between { justify-content: space-between; } .items-center { align-items: center; }
+  .gap-8 { gap: 8px; } .gap-12 { gap: 12px; }
+  .input {
+    padding: 8px 12px; background: var(--bg2); border: 1px solid var(--border); color: var(--text);
+    font-family: inherit; font-size: 14px; border-radius: 6px; outline: none;
+  }
+  .input:focus { border-color: var(--gold); }
+  .toggle {
+    width: 40px; height: 22px; border-radius: 11px; border: none; cursor: pointer;
+    position: relative; transition: background 0.2s; flex-shrink: 0;
+  }
+  .toggle.on  { background: var(--success); }
+  .toggle.off { background: var(--card2); border: 1px solid var(--border); }
+  .toggle::after {
+    content: ''; position: absolute; top: 2px; width: 18px; height: 18px;
+    border-radius: 50%; background: #fff; transition: left 0.2s;
+  }
+  .toggle.on::after  { left: 20px; }
+  .toggle.off::after { left: 2px; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+  .log-item { padding: 8px 0; border-bottom: 1px solid rgba(240,192,96,0.08); font-size: 14px; }
+  .log-item:last-child { border-bottom: none; }
+  .log-time { font-size: 12px; color: var(--muted); float: right; }
+  .overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  .modal {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 28px; width: 100%; max-width: 480px; max-height: 80vh; overflow-y: auto;
+  }
+  .modal-title { font-family: 'Cinzel', serif; font-size: 16px; color: var(--gold); margin-bottom: 20px; }
+  select.input option { background: var(--card); }
+  .pwa-tip { background: var(--card2); border: 1px solid var(--border); border-radius: 8px; padding: 16px; font-size: 14px; line-height: 1.7; }
+  .activity-log { max-height: 220px; overflow-y: auto; }
+  .alert-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: rgba(224,80,64,0.1); border: 1px solid var(--danger); border-radius: 6px; margin-bottom: 8px; }
+
+  /* ── GROEP PRODUCT TILE ── */
+  .groep-product {
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    padding: 10px 12px; background: var(--card2); border: 1px solid var(--border);
+    border-radius: 8px; min-width: 90px; text-align: center; transition: all 0.2s;
+  }
+  .groep-product.flash { animation: tileFlash 0.35s ease; }
+  .groep-product.sold-out { opacity: 0.4; }
+
+  @media (max-width: 768px) {
+    .sidebar { transform: translateX(-100%); }
+    .sidebar.open { transform: translateX(0); }
+    .main { margin-left: 0 !important; }
+    .hamburger { display: block; }
+    .content { padding: 16px; }
+    .stat-grid { grid-template-columns: repeat(2, 1fr); }
+    .product-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  </style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════
+     Muziekvereniging Aer & Amstel — Bar App
+     Vanilla JS · Geen React · Geen externe scripts
+     Werkt in Jouwweb Embed Code element
+     ════════════════════════════════════════════════ -->
+
+<script>
+
+'use strict';
+// ─── STATE ───────────────────────────────────────────────────────────────────
+const APP_NAME = "Muziekvereniging Aer & Amstel";
+
+const PRODUCTS = [
+  { id:"bier",   name:"Bier",        price:2.25, minStock:24, unit:"fles",   emoji:"🍺" },
+  { id:"wijn",   name:"Wijn",        price:2.75, minStock:4,  unit:"fles",   emoji:"🍷" },
+  { id:"fris",   name:"Frisdrank",   price:2.00, minStock:24, unit:"blik",   emoji:"🥤" },
+  { id:"koffie", name:"Koffie/Thee", price:1.50, minStock:50, unit:"portie", emoji:"☕" },
+  { id:"snack",  name:"Snack",       price:1.00, minStock:50, unit:"stuk",   emoji:"🥨" },
+];
+
+const SEED_USERS = [
+  { id:"u1", name:"Admin Eerste",   email:"admin1@aer.nl", pw:"admin123", role:"admin", isBarkeeper:false },
+  { id:"u2", name:"Admin Tweede",   email:"admin2@aer.nl", pw:"admin123", role:"admin", isBarkeeper:false },
+  { id:"u3", name:"Admin Derde",    email:"admin3@aer.nl", pw:"admin123", role:"admin", isBarkeeper:false },
+  { id:"u4", name:"Bram Barkeeper", email:"bram@aer.nl",   pw:"lid123",   role:"lid",   isBarkeeper:true  },
+  { id:"u5", name:"Lisa Lid",       email:"lisa@aer.nl",   pw:"lid123",   role:"lid",   isBarkeeper:false },
+  { id:"u6", name:"Joris Lid",      email:"joris@aer.nl",  pw:"lid123",   role:"lid",   isBarkeeper:false },
+  { id:"u7", name:"Fenna Lid",      email:"fenna@aer.nl",  pw:"lid123",   role:"lid",   isBarkeeper:false },
+  { id:"u8", name:"Tom Lid",        email:"tom@aer.nl",    pw:"lid123",   role:"lid",   isBarkeeper:false },
+];
+
+const SEED_STOCK = Object.fromEntries(PRODUCTS.map(p => [p.id, p.minStock * 2]));
+
+// ─── STORAGE ─────────────────────────────────────────────────────────────────
+const ls = {
+  get: (k, d) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } },
+  set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+};
+
+function initStorage() {
+  if (!ls.get("aer_users",null))    ls.set("aer_users",    SEED_USERS);
+  if (!ls.get("aer_orders",null))   ls.set("aer_orders",   []);
+  if (!ls.get("aer_payments",null)) ls.set("aer_payments", []);
+  if (!ls.get("aer_stock",null))    ls.set("aer_stock",    SEED_STOCK);
+  if (!ls.get("aer_purchases",null))ls.set("aer_purchases",[]);
+  if (!ls.get("aer_alerts",null))   ls.set("aer_alerts",   []);
+}
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let STATE = {
+  currentUser: null,
+  page: "",
+  sidebarOpen: false,
+  // live data (loaded from ls on every action)
+};
+
+function getData(key) { return ls.get("aer_" + key, []); }
+function setData(key, val) { ls.set("aer_" + key, val); }
+function getMollie() { return ls.get("aer_mollie",""); }
+
+// ─── UTILS ───────────────────────────────────────────────────────────────────
+const fmt   = n  => "€" + Number(n).toFixed(2);
+const nowTs = () => new Date().toISOString();
+const uid   = () => Math.random().toString(36).slice(2,10);
+const esc   = s  => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+const fmtDate = iso => new Date(iso).toLocaleString("nl-NL",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"});
+
+function stockColor(s, min) {
+  if (s <= 0)   return "stock-red";
+  if (s <= min) return "stock-orange";
+  return "stock-green";
+}
+function stockLabel(s, min) {
+  if (s <= 0)   return "Uitverkocht";
+  if (s <= min) return "Laag";
+  return "OK";
+}
+function calcBalance(userId) {
+  return getData("orders").filter(o => o.userId === userId && o.paymentStatus !== "paid")
+    .reduce((s,o) => s + o.total, 0);
+}
+function getProd(id) { return PRODUCTS.find(p => p.id === id); }
+function activeAlerts() { return getData("alerts").filter(a => a.active); }
+
+// ─── DOM HELPERS ─────────────────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+const el = (tag, attrs={}, ...children) => {
+  const e = document.createElement(tag);
+  for (const [k,v] of Object.entries(attrs)) {
+    if (k === "style" && typeof v === "object") { Object.assign(e.style, v); }
+    else if (k.startsWith("on")) { e.addEventListener(k.slice(2).toLowerCase(), v); }
+    else e.setAttribute(k, v);
+  }
+  for (const c of children) {
+    if (c == null) continue;
+    if (typeof c === "string" || typeof c === "number") e.insertAdjacentHTML("beforeend", String(c));
+    else e.appendChild(c);
+  }
+  return e;
+};
+
+function render(containerId, html) {
+  $(containerId).innerHTML = html;
+}
+function setHTML(containerId, html) {
+  const c = $(containerId);
+  if (c) c.innerHTML = html;
+}
+
+// ─── ROUTING & RENDER ────────────────────────────────────────────────────────
+function navigate(page) {
+  STATE.page = page;
+  STATE.sidebarOpen = false;
+  renderApp();
+}
+
+function renderApp() {
+  const u = STATE.currentUser;
+  if (!u) { renderLogin(); return; }
+  const isAdmin     = u.role === "admin";
+  const isBarkeeper = u.isBarkeeper || isAdmin;
+  const isPureLid   = !isAdmin && !isBarkeeper;
+
+  const nav = isAdmin ? [
+    { id:"dashboard", label:"Dashboard",    icon:"📊" },
+    { id:"turven",    label:"Turven",       icon:"🍺" },
+    { id:"leden",     label:"Leden & Rollen", icon:"👥" },
+    { id:"betalingen",label:"Betalingen",   icon:"💳" },
+    { id:"voorraad",  label:"Voorraad",     icon:"📦" },
+    { id:"instellingen", label:"Instellingen", icon:"⚙️" },
+  ] : isBarkeeper ? [
+    { id:"dashboard", label:"Dashboard",  icon:"📊" },
+    { id:"turven",    label:"Turven",     icon:"🍺" },
+    { id:"voorraad",  label:"Voorraad",   icon:"📦" },
+    { id:"inkooplog", label:"Inkoop Log", icon:"📋" },
+    { id:"profiel",   label:"Profiel",    icon:"👤" },
+  ] : [
+    { id:"saldo",     label:"Mijn Saldo", icon:"💰" },
+    { id:"historiek", label:"Historiek",  icon:"📜" },
+    { id:"turven",    label:"Turven",     icon:"🍺" },
+    { id:"profiel",   label:"Profiel",    icon:"👤" },
+  ];
+
+  if (!STATE.page) STATE.page = nav[0].id;
+  const alerts = activeAlerts();
+  const pageLabel = (nav.find(n => n.id === STATE.page) || nav[0]).label;
+
+  const sidebarItems = nav.map(item => {
+    const badge = (item.id === "voorraad" && alerts.length > 0)
+      ? `<span class="nav-badge">${alerts.length}</span>` : "";
+    const active = STATE.page === item.id ? " active" : "";
+    return `<button class="nav-item${active}" onclick="navigate('${item.id}')">\
+<span class="icon">${item.icon}</span>${esc(item.label)}${badge}</button>`;
+  }).join("");
+
+  const rolLabel = isAdmin ? "Beheerder" : isBarkeeper ? "Barbeheerder" : "Lid";
+
+  document.body.innerHTML = `
+<div class="app">
+  ${STATE.sidebarOpen ? `<div style="position:fixed;inset:0;z-index:99;background:rgba(0,0,0,.5)" onclick="closeSidebar()"></div>` : ""}
+  <nav class="sidebar${STATE.sidebarOpen ? " open" : ""}">
+    <div class="sidebar-brand">
+      <h1>🎵 ${esc(APP_NAME)}</h1>
+      <div class="subtitle">${rolLabel}</div>
+    </div>
+    <div class="sidebar-nav">${sidebarItems}</div>
+    <div class="sidebar-user">
+      <div class="name">${esc(u.name)}</div>
+      <div class="role">${esc(u.email)}</div>
+      <button class="logout-btn" onclick="doLogout()">Uitloggen</button>
+    </div>
+  </nav>
+  <main class="main">
+    <div class="topbar">
+      <button class="hamburger" onclick="toggleSidebar()">☰</button>
+      <h2>${esc(pageLabel)}</h2>
+    </div>
+    <div class="content" id="page-content"></div>
+  </main>
+</div>`;
+
+  // render page
+  const pc = $("page-content");
+  if (!pc) return;
+  if (STATE.page === "dashboard")    renderDashboard(pc, isAdmin, isBarkeeper);
+  else if (STATE.page === "turven")  renderTurven(pc, isAdmin, isBarkeeper);
+  else if (STATE.page === "leden")   renderLeden(pc);
+  else if (STATE.page === "betalingen") renderBetalingen(pc);
+  else if (STATE.page === "voorraad")   renderVoorraad(pc);
+  else if (STATE.page === "instellingen") renderInstellingen(pc);
+  else if (STATE.page === "inkooplog")  renderInkooplog(pc);
+  else if (STATE.page === "saldo")      renderSaldo(pc);
+  else if (STATE.page === "historiek")  renderHistoriek(pc);
+  else if (STATE.page === "profiel")    renderProfiel(pc);
+}
+
+function closeSidebar() { STATE.sidebarOpen = false; renderApp(); }
+function toggleSidebar() { STATE.sidebarOpen = !STATE.sidebarOpen; renderApp(); }
+function doLogout() { STATE.currentUser = null; STATE.page = ""; renderApp(); }
+
+// ─── LOGIN ───────────────────────────────────────────────────────────────────
+function renderLogin() {
+  document.body.innerHTML = `
+<div class="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <span class="music-icon">🎵</span>
+      <h1>${esc(APP_NAME)}</h1>
+      <p style="color:var(--muted);font-size:13px;margin-top:6px">Barregistratie &amp; Betaalsysteem</p>
+    </div>
+    <div id="login-err"></div>
+    <div class="form-group">
+      <label>E-mailadres</label>
+      <input type="email" id="l-email" placeholder="email@aer.nl" autocomplete="email" />
+    </div>
+    <div class="form-group">
+      <label>Wachtwoord</label>
+      <input type="password" id="l-pw" autocomplete="current-password" />
+    </div>
+    <button class="btn btn-primary btn-full mt-8" onclick="doLogin()">Inloggen</button>
+    <div style="margin-top:20px;padding:14px;background:rgba(240,192,96,.08);border-radius:8px;font-size:12px;color:var(--muted);line-height:1.7">
+      <strong style="color:var(--gold)">Demo accounts:</strong><br>
+      Admin: admin1@aer.nl / admin123<br>
+      Barbeheerder: bram@aer.nl / lid123<br>
+      Lid: lisa@aer.nl / lid123
+    </div>
+  </div>
+</div>`;
+  $("l-pw").addEventListener("keydown", e => { if(e.key==="Enter") doLogin(); });
+  $("l-email").addEventListener("keydown", e => { if(e.key==="Enter") doLogin(); });
+}
+
+function doLogin() {
+  const email = ($("l-email") || {}).value || "";
+  const pw    = ($("l-pw")    || {}).value || "";
+  const users = getData("users");
+  const u = users.find(x => x.email === email && x.pw === pw);
+  if (!u) {
+    $("login-err").innerHTML = `<div class="banner banner-danger"><span>🔴</span><span>Ongeldig e-mailadres of wachtwoord.</span></div>`;
+    return;
+  }
+  STATE.currentUser = u;
+  const isAdmin = u.role === "admin";
+  const isBarkeeper = u.isBarkeeper || isAdmin;
+  STATE.page = isAdmin ? "dashboard" : isBarkeeper ? "dashboard" : "saldo";
+  renderApp();
+}
+
+// ─── TOAST ───────────────────────────────────────────────────────────────────
+function showToast(msg, type="success") {
+  const t = document.createElement("div");
+  t.style.cssText = `position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:var(--${type === "success" ? "success" : "danger"});color:#fff;
+    padding:10px 24px;border-radius:24px;font-weight:700;z-index:9999;
+    box-shadow:0 4px 20px rgba(0,0,0,.4);white-space:nowrap;font-size:15px;
+    font-family:'Crimson Text',Georgia,serif;`;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2800);
+}
+
+// ─── MODAL ───────────────────────────────────────────────────────────────────
+function showModal(titleTxt, contentHTML, onConfirm, confirmLabel="Bevestig") {
+  const overlay = document.createElement("div");
+  overlay.className = "overlay";
+  overlay.innerHTML = `
+<div class="modal">
+  <div class="flex flex-between items-center" style="margin-bottom:20px">
+    <div class="modal-title">${esc(titleTxt)}</div>
+    <button class="btn btn-sm btn-secondary" id="_modal-close">✕</button>
+  </div>
+  <div id="_modal-body">${contentHTML}</div>
+  ${onConfirm ? `<div class="flex gap-8" style="justify-content:flex-end;margin-top:20px">
+    <button class="btn btn-secondary" id="_modal-cancel">Annuleer</button>
+    <button class="btn btn-primary" id="_modal-ok">${esc(confirmLabel)}</button>
+  </div>` : ""}
+</div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener("click", e => { if(e.target===overlay) overlay.remove(); });
+  overlay.querySelector("#_modal-close").onclick = () => overlay.remove();
+  if (onConfirm) {
+    overlay.querySelector("#_modal-cancel").onclick = () => overlay.remove();
+    overlay.querySelector("#_modal-ok").onclick = () => { overlay.remove(); onConfirm(); };
+  }
+  return overlay;
+}
+
+// ─── COMMIT ORDER ────────────────────────────────────────────────────────────
+function commitOrder(userId, quantities) {
+  const items = PRODUCTS.filter(p => (quantities[p.id]||0) > 0)
+    .map(p => ({ productId:p.id, qty:quantities[p.id], price:p.price }));
+  if (!items.length) return false;
+  const total = items.reduce((s,i) => s + i.qty*i.price, 0);
+  const orders = getData("orders");
+  orders.push({ id:uid(), userId, items, total, date:nowTs(), paymentStatus:"open", paymentId:null });
+  setData("orders", orders);
+  const stock = getData("stock");
+  const alerts = getData("alerts");
+  items.forEach(item => {
+    stock[item.productId] = (stock[item.productId]||0) - item.qty;
+    const p = getProd(item.productId);
+    if (stock[item.productId] <= p.minStock) {
+      if (!alerts.find(a => a.productId===item.productId && a.active))
+        alerts.push({ id:uid(), productId:item.productId, date:nowTs(), active:true });
+    }
+  });
+  setData("stock", stock);
+  setData("alerts", alerts);
+  return true;
+}
+
+// ─── DASHBOARD ───────────────────────────────────────────────────────────────
+function renderDashboard(pc, isAdmin, isBarkeeper) {
+  const orders = getData("orders");
+  const alerts = activeAlerts();
+  const today = new Date().toDateString();
+
+  let html = "";
+
+  // Alert banner
+  if (alerts.length > 0) {
+    html += `<div class="banner banner-warn" onclick="navigate('voorraad')" style="cursor:pointer">
+      <span>⚠️</span><span>${alerts.length} product${alerts.length>1?"en":""} onder minimumdrempel — klik voor Voorraad</span></div>`;
+  }
+
+  if (isAdmin) {
+    const users = getData("users");
+    const payments = getData("payments");
+    const totalOpen = users.reduce((s,u) => s + calcBalance(u.id), 0);
+    const totalPaid = payments.filter(p=>p.status==="paid").reduce((s,p)=>s+p.amount,0);
+    const debtors = users.filter(u => calcBalance(u.id) > 0);
+    const members = users.filter(u => u.role==="lid");
+    html += `<div class="stat-grid">
+      <div class="stat-card"><div class="stat-value">${members.length}</div><div class="stat-label">Leden</div></div>
+      <div class="stat-card"><div class="stat-value text-danger">${fmt(totalOpen)}</div><div class="stat-label">Openstaand</div></div>
+      <div class="stat-card"><div class="stat-value text-success">${fmt(totalPaid)}</div><div class="stat-label">Ontvangen</div></div>
+      <div class="stat-card"><div class="stat-value text-danger">${debtors.length}</div><div class="stat-label">Schuldenaren</div></div>
+    </div>`;
+    // Debtors
+    html += `<div class="card"><div class="card-title">Openstaande Schulden</div>`;
+    if (!debtors.length) html += `<p class="text-muted">Niemand heeft een openstaand saldo.</p>`;
+    else debtors.forEach(u => { html += `<div class="log-item flex flex-between items-center"><span>${esc(u.name)}</span><strong class="text-danger">${fmt(calcBalance(u.id))}</strong></div>`; });
+    html += `</div>`;
+  } else {
+    // Barkeeper dashboard
+    const todayOrders = orders.filter(o => new Date(o.date).toDateString()===today);
+    const todayRev = todayOrders.reduce((s,o)=>s+o.total,0);
+    html += `<div class="stat-grid">
+      <div class="stat-card"><div class="stat-value text-success">${fmt(todayRev)}</div><div class="stat-label">Omzet Vandaag</div></div>
+      <div class="stat-card"><div class="stat-value">${todayOrders.length}</div><div class="stat-label">Bestellingen Vandaag</div></div>
+      <div class="stat-card"><div class="stat-value text-danger">${alerts.length}</div><div class="stat-label">Bestelmeldingen</div></div>
+    </div>`;
+  }
+
+  // Revenue chart
+  html += renderRevenueChart(orders);
+
+  // Recent orders
+  const recent = [...orders].reverse().slice(0,8);
+  const users = getData("users");
+  html += `<div class="card"><div class="card-title">Recente Bestellingen</div>`;
+  if (!recent.length) html += `<p class="text-muted">Nog geen bestellingen.</p>`;
+  else recent.forEach(o => {
+    const u = users.find(x=>x.id===o.userId);
+    html += `<div class="log-item"><span class="log-time">${fmtDate(o.date)}</span>
+      <strong>${esc(u?.name||"?")}</strong> — ${fmt(o.total)}</div>`;
+  });
+  html += `</div>`;
+
+  pc.innerHTML = html;
+  initRevenueChartEvents();
+}
+
+// ─── REVENUE CHART ────────────────────────────────────────────────────────────
+let _chartPeriod = "week";
+function renderRevenueChart(orders) {
+  const p = _chartPeriod;
+  const now2 = new Date();
+  let buckets = [];
+  if (p === "dag") {
+    buckets = Array.from({length:7},(_,i)=>{ const d=new Date(now2); d.setDate(d.getDate()-(6-i)); return {key:d.toDateString(), label:d.toLocaleDateString("nl-NL",{weekday:"short",day:"numeric"})}; });
+  } else if (p === "week") {
+    buckets = Array.from({length:8},(_,i)=>{ const d=new Date(now2); const dow=d.getDay()||7; d.setDate(d.getDate()-dow+1-(7-i)*7); const ws=new Date(d); const we=new Date(d); we.setDate(d.getDate()+6); return {key:`W${ws.toISOString().slice(0,10)}`,label:`${ws.getDate()}/${ws.getMonth()+1}`,weekStart:ws,weekEnd:we}; });
+  } else {
+    buckets = Array.from({length:6},(_,i)=>{ const d=new Date(now2.getFullYear(),now2.getMonth()-(5-i),1); return {key:`${d.getFullYear()}-${d.getMonth()}`,label:d.toLocaleDateString("nl-NL",{month:"short"}),year:d.getFullYear(),month:d.getMonth()}; });
+  }
+  function rev(b) {
+    return orders.filter(o=>{ const d=new Date(o.date);
+      if(p==="dag") return d.toDateString()===b.key;
+      if(p==="week") return d>=b.weekStart && d<=b.weekEnd;
+      return d.getFullYear()===b.year && d.getMonth()===b.month;
+    }).reduce((s,o)=>s+o.total,0);
+  }
+  const vals = buckets.map(b=>rev(b));
+  const maxV = Math.max(...vals,0.01);
+  const total = vals.reduce((s,v)=>s+v,0);
+  const avg   = total/buckets.length;
+
+  const tabs = [["dag","Per Dag"],["week","Per Week"],["maand","Per Maand"]].map(([id,lbl])=>
+    `<button onclick="setChartPeriod('${id}')" style="padding:6px 14px;border:none;cursor:pointer;font-family:inherit;font-size:13px;background:${p===id?"var(--gold)":"var(--card2)"};color:${p===id?"var(--card)":"var(--muted)"};font-weight:${p===id?700:400}">${lbl}</button>`).join("");
+
+  const bars = buckets.map((b,i) => {
+    const h = vals[i]>0 ? Math.max(4, (vals[i]/maxV)*(140-28)) : 2;
+    const isLast = p==="dag" && i===buckets.length-1;
+    const valLabel = vals[i]>0 ? `<div style="font-size:10px;color:var(--gold);font-weight:700">€${vals[i].toFixed(0)}</div>` : `<div style="font-size:10px">&nbsp;</div>`;
+    return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end">
+      ${valLabel}
+      <div style="width:100%;height:${h}px;border-radius:4px 4px 0 0;background:${isLast?"linear-gradient(180deg,var(--gold),var(--amber))":"linear-gradient(180deg,var(--accent),#1a6a8a)"};min-height:2px" title="${b.label}: ${fmt(vals[i])}"></div>
+      <div style="font-size:10px;color:var(--muted);text-align:center;position:absolute;bottom:0">${b.label}</div>
+    </div>`;
+  }).join("");
+
+  // Product breakdown
+  const prodBreakdown = PRODUCTS.map(prod => {
+    const qty = orders.reduce((s,o) => s+(o.items.find(i=>i.productId===prod.id)?.qty||0),0);
+    if(!qty) return "";
+    return `<div style="background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:6px 12px;font-size:13px">
+      ${prod.emoji} ${esc(prod.name)}: <strong style="color:var(--gold)">${qty}×</strong> = <span style="color:var(--accent)">${fmt(qty*prod.price)}</span></div>`;
+  }).join("");
+
+  return `<div class="card">
+    <div class="flex flex-between items-center" style="margin-bottom:16px;flex-wrap:wrap;gap:8px">
+      <div class="card-title" style="margin:0">Omzet</div>
+      <div style="display:flex;gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden">${tabs}</div>
+    </div>
+    <div style="display:flex;gap:16px;margin-bottom:20px;flex-wrap:wrap">
+      <div style="background:var(--card2);border-radius:8px;padding:10px 18px;border:1px solid var(--border)">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:2px">Totaal periode</div>
+        <div style="font-family:'Cinzel',serif;font-size:20px;color:var(--gold);font-weight:700">${fmt(total)}</div>
+      </div>
+      <div style="background:var(--card2);border-radius:8px;padding:10px 18px;border:1px solid var(--border)">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:2px">Gemiddeld</div>
+        <div style="font-family:'Cinzel',serif;font-size:20px;color:var(--accent);font-weight:700">${fmt(avg)}</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:flex-end;gap:6px;height:140px;padding-bottom:24px;position:relative">
+      ${bars}
+    </div>
+    <hr style="border:none;border-top:1px solid var(--border);margin:16px 0 12px">
+    <div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-family:'Cinzel',serif">Verdeling per product</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px">${prodBreakdown || '<span class="text-muted">Nog geen data.</span>'}</div>
+  </div>`;
+}
+
+function setChartPeriod(p) { _chartPeriod = p; renderApp(); }
+function initRevenueChartEvents() { /* events inline via onclick */ }
+
+// ─── TURVEN ──────────────────────────────────────────────────────────────────
+let _turvenMode = "individueel"; // "individueel" | "groep"
+let _turvenSearch = "";
+let _turvenQty = {};       // productId -> qty (individueel)
+let _turvenGroepQty = {};  // userId -> {productId -> qty}
+let _turvenSelUser = "";
+
+function renderTurven(pc, isAdmin, isBarkeeper) {
+  const allUsers = getData("users");
+  const stock = getData("stock");
+  const filt = allUsers.filter(u => !_turvenSearch.trim() ||
+    u.name.toLowerCase().includes(_turvenSearch.toLowerCase()) ||
+    u.email.toLowerCase().includes(_turvenSearch.toLowerCase()));
+
+  const tabs = [["individueel","👤 Individueel"],["groep","👥 Groepsoverzicht"]].map(([id,lbl])=>
+    `<button onclick="setTurvenMode('${id}')" style="padding:8px 16px;border:none;cursor:pointer;font-family:inherit;font-size:13px;background:${_turvenMode===id?"var(--gold)":"var(--card2)"};color:${_turvenMode===id?"var(--card)":"var(--muted)"};font-weight:${_turvenMode===id?700:400}">${lbl}</button>`).join("");
+
+  let html = `<div class="card" style="padding:14px 18px;margin-bottom:14px">
+    <div class="flex flex-between items-center" style="gap:12px;flex-wrap:wrap">
+      <div style="position:relative;flex:1 1 220px;min-width:180px">
+        <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none">🔍</span>
+        <input class="input" style="width:100%;padding-left:32px;box-sizing:border-box" placeholder="Zoek op naam of e-mail…"
+          id="turven-search" value="${esc(_turvenSearch)}" oninput="onTurvenSearch(this.value)" />
+      </div>
+      <div style="display:flex;gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden;flex-shrink:0">${tabs}</div>
+    </div>
+  </div>`;
+
+  if (_turvenMode === "individueel") {
+    // pill list of members
+    const pills = filt.map(u => {
+      const sel = _turvenSelUser === u.id;
+      return `<button onclick="selectTurvenUser('${u.id}')" style="padding:8px 16px;border-radius:20px;border:1px solid ${sel?"var(--gold)":"var(--border)"};background:${sel?"rgba(240,192,96,.15)":"var(--card2)"};color:${sel?"var(--gold)":"var(--text)"};cursor:pointer;font-family:inherit;font-size:14px;font-weight:${sel?700:400};transition:all .18s">${esc(u.name)}</button>`;
+    }).join("");
+    html += `<div class="card"><div class="card-title">Selecteer Lid</div>
+      ${filt.length===0?'<p class="text-muted">Geen leden gevonden.</p>':`<div style="display:flex;flex-wrap:wrap;gap:8px">${pills}</div>`}
+    </div>`;
+
+    if (_turvenSelUser) {
+      const selU = allUsers.find(u=>u.id===_turvenSelUser);
+      const total = PRODUCTS.reduce((s,p)=>s+((_turvenQty[p.id]||0)*p.price),0);
+      const tiles = PRODUCTS.map(p => {
+        const s = stock[p.id]||0;
+        const q = _turvenQty[p.id]||0;
+        const soldOut = s<=0;
+        return `<div class="product-tile${soldOut?" sold-out":""}">
+          <span class="product-emoji">${p.emoji}</span>
+          <div class="product-name">${esc(p.name)}</div>
+          <div class="product-price">${fmt(p.price)}</div>
+          <div class="product-stock ${stockColor(s,p.minStock)}">${s} ${p.unit}</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="turvenSub('${p.id}')" ${q===0?"disabled":""}>−</button>
+            <span class="qty-val">${q}</span>
+            <button class="qty-btn" onclick="turvenAdd('${p.id}')" ${soldOut||q>=s?"disabled":""}>+</button>
+          </div>
+        </div>`;
+      }).join("");
+      html += `<div class="card">
+        <div class="card-title">Bestelling voor <span style="color:var(--accent)">${esc(selU?.name||"")}</span></div>
+        <div class="product-grid">${tiles}</div>
+        ${total>0?`<div class="mt-16 flex flex-between items-center">
+          <div style="font-size:18px;color:var(--gold);font-weight:700">Totaal: ${fmt(total)}</div>
+          <button class="btn btn-primary" onclick="turvenBevestig()">✓ Bevestigen</button>
+        </div>`:""}
+      </div>`;
+    }
+  } else {
+    // groep mode
+    if (filt.length===0) { html += `<p class="text-muted">Geen leden gevonden.</p>`; }
+    filt.forEach(u => {
+      const uq = _turvenGroepQty[u.id] || {};
+      const tot = PRODUCTS.reduce((s,p)=>s+((uq[p.id]||0)*p.price),0);
+      const tiles = PRODUCTS.map(p => {
+        const s = stock[p.id]||0;
+        const q = uq[p.id]||0;
+        const soldOut = s<=0;
+        return `<div class="groep-product${soldOut?" sold-out":""}">
+          <span style="font-size:20px">${p.emoji}</span>
+          <span style="font-size:12px;color:var(--text);font-weight:600;line-height:1.1">${esc(p.name)}</span>
+          <span style="font-size:11px;color:var(--gold)">${fmt(p.price)}</span>
+          <div class="qty-control" style="margin-top:4px">
+            <button class="qty-btn" style="width:22px;height:22px;font-size:14px" onclick="groepSub('${u.id}','${p.id}')" ${q===0?"disabled":""}>−</button>
+            <span class="qty-val" style="font-size:14px;min-width:16px">${q}</span>
+            <button class="qty-btn" style="width:22px;height:22px;font-size:14px" onclick="groepAdd('${u.id}','${p.id}')" ${soldOut?"disabled":""}>+</button>
+          </div>
+        </div>`;
+      }).join("");
+      const hasItems = tot > 0;
+      html += `<div class="card" style="margin-bottom:12px;padding:14px 18px">
+        <div class="flex flex-between items-center" style="margin-bottom:${hasItems?12:0}px">
+          <div>
+            <span style="font-family:'Cinzel',serif;color:var(--gold);font-size:15px;font-weight:700">${esc(u.name)}</span>
+            <span class="text-muted" style="font-size:12px;margin-left:8px">${esc(u.email)}</span>
+          </div>
+          ${hasItems?`<div class="flex gap-8 items-center">
+            <span style="color:var(--gold);font-weight:700">${fmt(tot)}</span>
+            <button class="btn btn-sm btn-primary" onclick="groepBevestig('${u.id}')">✓ Bevestig</button>
+            <button class="btn btn-sm btn-secondary" onclick="groepClear('${u.id}')">✕</button>
+          </div>`:""}
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">${tiles}</div>
+      </div>`;
+    });
+  }
+  pc.innerHTML = html;
+  // keep focus on search
+  if ($("turven-search")) $("turven-search").focus();
+}
+
+function setTurvenMode(m) { _turvenMode=m; _turvenQty={}; _turvenSelUser=""; renderApp(); }
+function onTurvenSearch(v) { _turvenSearch=v; renderApp(); }
+function selectTurvenUser(id) { _turvenSelUser = _turvenSelUser===id ? "" : id; _turvenQty={}; renderApp(); }
+
+function turvenAdd(pid) {
+  const stock = getData("stock");
+  const s = stock[pid]||0;
+  const q = _turvenQty[pid]||0;
+  if (q>=s) return;
+  _turvenQty[pid] = q+1;
+  renderApp();
+}
+function turvenSub(pid) {
+  _turvenQty[pid] = Math.max(0, (_turvenQty[pid]||0)-1);
+  renderApp();
+}
+function turvenBevestig() {
+  if (!_turvenSelUser) return;
+  const users = getData("users");
+  const u = users.find(x=>x.id===_turvenSelUser);
+  const total = PRODUCTS.reduce((s,p)=>s+((_turvenQty[p.id]||0)*p.price),0);
+  if (total===0) return;
+  const rows = PRODUCTS.filter(p=>(_turvenQty[p.id]||0)>0).map(p=>
+    `<div class="log-item">${p.emoji} ${esc(p.name)} × ${_turvenQty[p.id]} = ${fmt(_turvenQty[p.id]*p.price)}</div>`).join("");
+  showModal(`Bestelling voor ${u?.name}`,
+    `${rows}<hr class="divider"><strong style="color:var(--gold);font-size:18px">Totaal: ${fmt(total)}</strong>`,
+    () => {
+      commitOrder(_turvenSelUser, _turvenQty);
+      _turvenQty = {}; _turvenSelUser = "";
+      showToast(`✓ Bestelling voor ${u?.name} geregistreerd`);
+      renderApp();
+    }
+  );
+}
+
+function groepAdd(uid, pid) {
+  const stock = getData("stock");
+  const s = stock[pid]||0;
+  if (!_turvenGroepQty[uid]) _turvenGroepQty[uid]={};
+  const q = _turvenGroepQty[uid][pid]||0;
+  if (q>=s) return;
+  _turvenGroepQty[uid][pid] = q+1;
+  renderApp();
+}
+function groepSub(uid, pid) {
+  if (!_turvenGroepQty[uid]) return;
+  _turvenGroepQty[uid][pid] = Math.max(0,(_turvenGroepQty[uid][pid]||0)-1);
+  renderApp();
+}
+function groepClear(uid) { _turvenGroepQty[uid]={}; renderApp(); }
+function groepBevestig(uid) {
+  const users = getData("users");
+  const u = users.find(x=>x.id===uid);
+  const qs = _turvenGroepQty[uid]||{};
+  const total = PRODUCTS.reduce((s,p)=>s+((qs[p.id]||0)*p.price),0);
+  if(total===0) return;
+  const rows = PRODUCTS.filter(p=>(qs[p.id]||0)>0).map(p=>
+    `<div class="log-item">${p.emoji} ${esc(p.name)} × ${qs[p.id]} = ${fmt(qs[p.id]*p.price)}</div>`).join("");
+  showModal(`Bestelling voor ${u?.name}`,
+    `${rows}<hr class="divider"><strong style="color:var(--gold);font-size:18px">Totaal: ${fmt(total)}</strong>`,
+    () => {
+      commitOrder(uid, qs);
+      _turvenGroepQty[uid] = {};
+      showToast(`✓ Bestelling voor ${u?.name} geregistreerd`);
+      renderApp();
+    }
+  );
+}
+
+// ─── LID TURVEN (eigen bestelling) ───────────────────────────────────────────
+let _lidQty = {};
+function renderTurvenLid(pc) {
+  const stock = getData("stock");
+  const total = PRODUCTS.reduce((s,p)=>s+((_lidQty[p.id]||0)*p.price),0);
+  const tiles = PRODUCTS.map(p=>{
+    const s=stock[p.id]||0; const q=_lidQty[p.id]||0; const soldOut=s<=0;
+    return `<div class="product-tile${soldOut?" sold-out":""}">
+      <span class="product-emoji">${p.emoji}</span>
+      <div class="product-name">${esc(p.name)}</div>
+      <div class="product-price">${fmt(p.price)}</div>
+      <div class="product-stock ${stockColor(s,p.minStock)}">${s>0?"Beschikbaar":"Uitverkocht"}</div>
+      <div class="qty-control">
+        <button class="qty-btn" onclick="lidSub('${p.id}')" ${q===0?"disabled":""}>−</button>
+        <span class="qty-val">${q}</span>
+        <button class="qty-btn" onclick="lidAdd('${p.id}')" ${soldOut||q>=s?"disabled":""}>+</button>
+      </div>
+    </div>`;
+  }).join("");
+  pc.innerHTML = `<div class="card">
+    <div class="card-title">Mijn Bestelling</div>
+    <div class="product-grid">${tiles}</div>
+    ${total>0?`<div class="mt-16 flex flex-between items-center">
+      <div style="font-size:18px;color:var(--gold);font-weight:700">Totaal: ${fmt(total)}</div>
+      <button class="btn btn-primary" onclick="lidBevestig()">✓ Bevestigen</button>
+    </div>`:""}
+  </div>`;
+}
+function lidAdd(pid){ const s=getData("stock")[pid]||0; const q=_lidQty[pid]||0; if(q>=s)return; _lidQty[pid]=q+1; renderApp(); }
+function lidSub(pid){ _lidQty[pid]=Math.max(0,(_lidQty[pid]||0)-1); renderApp(); }
+function lidBevestig(){
+  const total=PRODUCTS.reduce((s,p)=>s+((_lidQty[p.id]||0)*p.price),0);
+  if(!total)return;
+  const rows=PRODUCTS.filter(p=>(_lidQty[p.id]||0)>0).map(p=>
+    `<div class="log-item">${p.emoji} ${esc(p.name)} × ${_lidQty[p.id]} = ${fmt(_lidQty[p.id]*p.price)}</div>`).join("");
+  showModal("Bestelling Bevestigen",
+    `<p style="margin-bottom:16px">Jouw bestelling:</p>${rows}<hr class="divider"><strong style="color:var(--gold);font-size:18px">Totaal: ${fmt(total)}</strong>`,
+    ()=>{ commitOrder(STATE.currentUser.id, _lidQty); _lidQty={}; showToast("✓ Bestelling geregistreerd!"); renderApp(); }
+  );
+}
+
+// Override renderTurven to handle lid case
+const _origRenderTurven = renderTurven;
+// (handled in renderApp via page routing)
+
+// ─── VOORRAAD ────────────────────────────────────────────────────────────────
+function renderVoorraad(pc) {
+  const stock = getData("stock");
+  const alerts = getData("alerts").filter(a=>a.active);
+  let html = "";
+  if (alerts.length>0) {
+    html += `<div class="card"><div class="card-title">⚠️ Bestelmeldingen</div>`;
+    alerts.forEach(a=>{
+      const p=getProd(a.productId);
+      html += `<div class="alert-item">
+        <span>${p?.emoji} <strong>${esc(p?.name)}</strong> is onder minimumdrempel (${stock[a.productId]} / ${p?.minStock})</span>
+        <button class="btn btn-sm btn-secondary" onclick="dismissAlert('${a.id}')">Verbergen</button>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+  const rows = PRODUCTS.map(p=>{
+    const s=stock[p.id]||0; const col=stockColor(s,p.minStock);
+    return `<tr>
+      <td>${p.emoji} ${esc(p.name)}</td>
+      <td class="${col}"><strong>${s}</strong></td>
+      <td>${p.minStock}</td>
+      <td><span class="${col}">${stockLabel(s,p.minStock)}</span></td>
+      <td>${p.unit}</td>
+      <td><div class="flex gap-8 items-center">
+        <input type="number" min="0" class="input" style="width:70px" id="recv-${p.id}" placeholder="0" oninput="" />
+        <button class="btn btn-sm btn-success" onclick="receiveStock('${p.id}')">+ Ontvangen</button>
+      </div></td>
+    </tr>`;
+  }).join("");
+  html += `<div class="card"><div class="card-title">Huidige Voorraad</div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Product</th><th>Voorraad</th><th>Minimum</th><th>Status</th><th>Eenheid</th><th>Ontvangen</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div></div>`;
+  pc.innerHTML = html;
+}
+function receiveStock(pid){
+  const qty=parseInt(($(`recv-${pid}`)||{}).value||0);
+  if(!qty||qty<=0)return;
+  const stock=getData("stock");
+  stock[pid]=(stock[pid]||0)+qty;
+  setData("stock",stock);
+  const alerts=getData("alerts").map(a=>a.productId===pid&&a.active?{...a,active:false}:a);
+  setData("alerts",alerts);
+  const purchases=getData("purchases");
+  purchases.push({id:uid(),productId:pid,qty,date:nowTs()});
+  setData("purchases",purchases);
+  showToast(`✓ ${qty} ${getProd(pid)?.unit} ${getProd(pid)?.name} toegevoegd`);
+  renderApp();
+}
+function dismissAlert(id){
+  const alerts=getData("alerts").map(a=>a.id===id?{...a,active:false}:a);
+  setData("alerts",alerts);
+  renderApp();
+}
+
+// ─── BETALINGEN ──────────────────────────────────────────────────────────────
+function buildMailto(user, payLink, amount) {
+  const subject=encodeURIComponent(`${APP_NAME} – Betaalverzoek ${fmt(amount)}`);
+  const body=encodeURIComponent(`Beste ${user.name},\n\nJe hebt een openstaand saldo van ${fmt(amount)} bij ${APP_NAME}.\n\nBetaal via:\n${payLink}\n\nMet vriendelijke groet,\n${APP_NAME}`);
+  return `mailto:${user.email}?subject=${subject}&body=${body}`;
+}
+async function createAndSendPayment(userId){
+  const orders=getData("orders");
+  const userOrders=orders.filter(o=>o.userId===userId&&o.paymentStatus!=="paid");
+  const amount=userOrders.reduce((s,o)=>s+o.total,0);
+  if(amount<=0){showToast("Geen openstaand saldo","danger");return;}
+  const users=getData("users");
+  const user=users.find(u=>u.id===userId);
+  const desc=`${APP_NAME} – ${user?.name} – ${fmt(amount)}`;
+  const mollie=getMollie();
+  let payLink;
+  if(mollie){try{
+    const res=await fetch("https://api.mollie.com/v2/payments",{method:"POST",
+      headers:{"Authorization":`Bearer ${mollie}`,"Content-Type":"application/json"},
+      body:JSON.stringify({amount:{currency:"EUR",value:amount.toFixed(2)},description:desc,redirectUrl:window.location.href})});
+    const data=await res.json(); payLink=data?._links?.checkout?.href;
+  }catch{}}
+  if(!payLink) payLink="https://www.mollie.com/checkout/demo";
+  const payments=getData("payments");
+  payments.push({id:uid(),userId,amount,desc,link:payLink,status:"open",date:nowTs(),orderIds:userOrders.map(o=>o.id)});
+  setData("payments",payments);
+  window.location.href=buildMailto(user,payLink,amount);
+  showToast(`📧 E-mail geopend voor ${user?.name}`);
+  setTimeout(()=>renderApp(),500);
+}
+function markPaid(payId){
+  const payments=getData("payments");
+  const pay=payments.find(p=>p.id===payId);
+  if(!pay)return;
+  setData("payments",payments.map(p=>p.id===payId?{...p,status:"paid"}:p));
+  const orders=getData("orders");
+  setData("orders",orders.map(o=>pay.orderIds?.includes(o.id)?{...o,paymentStatus:"paid"}:o));
+  showToast("✓ Gemarkeerd als betaald");
+  renderApp();
+}
+function renderBetalingen(pc){
+  const users=getData("users");
+  const payments=getData("payments");
+  const debtors=users.filter(u=>calcBalance(u.id)>0);
+  let html=`<div class="card">
+    <div class="flex flex-between items-center" style="margin-bottom:14px">
+      <div class="card-title" style="margin:0">Openstaande Schulden</div>
+      ${debtors.length>0?`<button class="btn btn-sm btn-primary" onclick="sendAllLinks()">📨 Stuur Alle E-mails</button>`:""}
+    </div>`;
+  if(!debtors.length) html+=`<p class="text-muted">Geen openstaande schulden.</p>`;
+  else debtors.forEach(u=>{
+    html+=`<div class="log-item"><div class="flex flex-between items-center" style="flex-wrap:wrap;gap:8px">
+      <div><strong>${esc(u.name)}</strong><span class="text-muted" style="font-size:12px;margin-left:8px">${esc(u.email)}</span><strong class="text-danger" style="margin-left:12px">${fmt(calcBalance(u.id))}</strong></div>
+      <button class="btn btn-sm btn-primary" onclick="createAndSendPayment('${u.id}')">📧 Stuur betaallink</button>
+    </div></div>`;
+  });
+  html+=`</div>`;
+
+  // Table
+  const rows=[...payments].reverse().map(p=>{
+    const u=users.find(x=>x.id===p.userId);
+    return `<tr>
+      <td>${fmtDate(p.date)}</td><td>${esc(u?.name||"")}</td>
+      <td style="font-size:12px;color:var(--muted)">${esc(u?.email||"")}</td>
+      <td>${fmt(p.amount)}</td>
+      <td><span class="badge badge-${p.status==="paid"?"paid":"open"}">${p.status==="paid"?"Betaald":"Openstaand"}</span></td>
+      <td><div class="flex gap-8" style="flex-wrap:wrap">
+        <button class="btn btn-sm btn-secondary" onclick="navigator.clipboard.writeText('${esc(p.link)}')">📋</button>
+        <a href="${esc(p.link)}" target="_blank" class="btn btn-sm btn-secondary">🔗</a>
+        ${p.status!=="paid"?`<button class="btn btn-sm btn-success" onclick="markPaid('${p.id}')">✓</button>`:""}
+      </div></td>
+    </tr>`;
+  }).join("");
+  html+=`<div class="card"><div class="card-title">Betaallinks Overzicht</div>
+    ${!payments.length?'<p class="text-muted">Nog geen betaallinks.</p>':`<div class="table-wrap"><table>
+      <thead><tr><th>Datum</th><th>Lid</th><th>E-mail</th><th>Bedrag</th><th>Status</th><th>Acties</th></tr></thead>
+      <tbody>${rows}</tbody></table></div>`}
+  </div>`;
+  html+=`<div class="card" style="background:rgba(72,164,204,.08);border:1px solid rgba(72,164,204,.3)">
+    <div style="font-size:13px;color:var(--muted);line-height:1.8">
+      <strong style="color:var(--accent)">ℹ️ Hoe werkt het?</strong><br>
+      Klik op 📧 Stuur betaallink. Je e-mailprogramma opent met een vooraf ingevuld bericht naar het inlogadres van het lid, inclusief betaallink en bedrag.
+    </div>
+  </div>`;
+  pc.innerHTML=html;
+}
+function sendAllLinks(){
+  const users=getData("users");
+  const debtors=users.filter(u=>calcBalance(u.id)>0);
+  debtors.forEach((u,i)=>setTimeout(()=>createAndSendPayment(u.id),i*700));
+}
+
+// ─── LEDEN & ROLLEN ──────────────────────────────────────────────────────────
+function renderLeden(pc){
+  const users=getData("users");
+  const admins=users.filter(u=>u.role==="admin");
+  const members=users.filter(u=>u.role==="lid");
+  const cu=STATE.currentUser;
+  const adminRows=admins.map(u=>`<tr>
+    <td>${esc(u.name)} ${u.id===cu.id?'<span class="badge badge-admin">Jij</span>':""}</td>
+    <td>${esc(u.email)}</td>
+    <td><button class="toggle ${u.isBarkeeper?"on":"off"}" onclick="toggleBarkeeper('${u.id}')"></button></td>
+  </tr>`).join("");
+  const memberRows=members.map(u=>`<tr>
+    <td>${esc(u.name)}</td><td>${esc(u.email)}</td>
+    <td><button class="toggle ${u.isBarkeeper?"on":"off"}" onclick="toggleBarkeeper('${u.id}')"></button></td>
+    <td><button class="btn btn-sm btn-danger" onclick="removeMember('${u.id}')">Verwijder</button></td>
+  </tr>`).join("");
+  pc.innerHTML=`
+  <div class="card"><div class="card-title">Admins</div>
+    <div class="table-wrap"><table><thead><tr><th>Naam</th><th>E-mail</th><th>Barbeheerder</th></tr></thead><tbody>${adminRows}</tbody></table></div>
+  </div>
+  <div class="card">
+    <div class="flex flex-between items-center" style="margin-bottom:14px">
+      <div class="card-title" style="margin:0">Leden (${members.length})</div>
+      <button class="btn btn-sm btn-primary" onclick="showAddMember()">+ Nieuw Lid</button>
+    </div>
+    <div class="table-wrap"><table><thead><tr><th>Naam</th><th>E-mail</th><th>Barbeheerder</th><th></th></tr></thead><tbody>${memberRows||'<tr><td colspan="4" class="text-muted">Geen leden.</td></tr>'}</tbody></table></div>
+  </div>`;
+}
+function toggleBarkeeper(id){
+  const users=getData("users").map(u=>u.id===id?{...u,isBarkeeper:!u.isBarkeeper}:u);
+  setData("users",users);
+  renderApp();
+}
+function removeMember(id){
+  if(id===STATE.currentUser?.id)return;
+  if(!confirm("Lid verwijderen?"))return;
+  setData("users",getData("users").filter(u=>u.id!==id));
+  renderApp();
+}
+function showAddMember(){
+  const m=showModal("Nieuw Lid Toevoegen",`
+    <div id="add-err"></div>
+    <div class="form-group"><label>Naam</label><input type="text" class="input" style="width:100%" id="add-name"/></div>
+    <div class="form-group"><label>E-mail</label><input type="email" class="input" style="width:100%" id="add-email"/></div>
+    <div class="form-group"><label>Wachtwoord</label><input type="password" class="input" style="width:100%" id="add-pw"/></div>
+    <div class="flex items-center gap-8" style="margin-bottom:16px">
+      <button class="toggle off" id="add-bk-toggle" onclick="toggleAddBk(this)"></button><span>Barbeheerder</span>
+    </div>`,
+    ()=>{
+      const name=($("add-name")||{}).value||"";
+      const email=($("add-email")||{}).value||"";
+      const pw=($("add-pw")||{}).value||"";
+      if(!name||!email||!pw){$("add-err").innerHTML='<div class="banner banner-danger"><span>🔴</span><span>Vul alle velden in.</span></div>';return false;}
+      const users=getData("users");
+      if(users.find(u=>u.email===email)){$("add-err").innerHTML='<div class="banner banner-danger"><span>🔴</span><span>E-mail al in gebruik.</span></div>';return false;}
+      const isBk=($("add-bk-toggle")||{}).classList?.contains("on")||false;
+      users.push({id:uid(),name,email,pw,role:"lid",isBarkeeper:isBk});
+      setData("users",users);
+      showToast("✓ Lid toegevoegd");
+      renderApp();
+    },"Toevoegen"
+  );
+}
+function toggleAddBk(btn){ btn.classList.toggle("on"); btn.classList.toggle("off"); }
+
+// ─── INSTELLINGEN ────────────────────────────────────────────────────────────
+function renderInstellingen(pc){
+  const cu=STATE.currentUser;
+  pc.innerHTML=`
+  <div class="card"><div class="card-title">Profiel Bewerken</div>
+    <div class="form-group"><label>Naam</label><input type="text" class="input" style="width:100%" id="s-name" value="${esc(cu.name)}"/></div>
+    <div class="form-group"><label>E-mail</label><input type="email" class="input" style="width:100%" id="s-email" value="${esc(cu.email)}"/></div>
+    <div class="form-group"><label>Nieuw Wachtwoord (optioneel)</label><input type="password" class="input" style="width:100%" id="s-pw"/></div>
+    <button class="btn btn-primary" onclick="saveProfile()">Opslaan</button>
+  </div>
+  <div class="card"><div class="card-title">Mollie API-sleutel</div>
+    <p class="text-muted" style="margin-bottom:12px">Voer uw live_ of test_ Mollie sleutel in voor echte iDEAL-betalingen.</p>
+    <div class="flex gap-8">
+      <input type="text" class="input" style="flex:1" id="s-mollie" value="${esc(getMollie())}" placeholder="live_... of test_..."/>
+      <button class="btn btn-primary" onclick="saveMollie()">Opslaan</button>
+    </div>
+  </div>
+  <div class="card"><div class="card-title">📱 App Installeren</div>
+    <div class="pwa-tip">
+      <strong style="color:var(--gold)">iOS:</strong> Safari → Delen → "Zet op beginscherm"<br><br>
+      <strong style="color:var(--gold)">Android:</strong> Chrome → Menu (⋮) → "Toevoegen aan beginscherm"<br><br>
+      <div class="flex gap-8 mt-8">
+        <input readonly class="input" style="flex:1;font-size:12px" id="s-url" value="${esc(window.location.href)}"/>
+        <button class="btn btn-secondary" onclick="navigator.clipboard.writeText($('s-url').value);showToast('✓ Gekopieerd')">📋 Kopieer</button>
+      </div>
+    </div>
+  </div>`;
+}
+function saveProfile(){
+  const name=($("s-name")||{}).value||STATE.currentUser.name;
+  const email=($("s-email")||{}).value||STATE.currentUser.email;
+  const pw=($("s-pw")||{}).value||"";
+  const users=getData("users").map(u=>u.id===STATE.currentUser.id?{...u,name,email,...(pw?{pw}:{})}:u);
+  setData("users",users);
+  STATE.currentUser={...STATE.currentUser,name,email};
+  showToast("✓ Opgeslagen");
+  renderApp();
+}
+function saveMollie(){
+  const v=($("s-mollie")||{}).value||"";
+  ls.set("aer_mollie",v);
+  showToast("✓ Mollie sleutel opgeslagen");
+}
+
+// ─── BARKEEPER DASHBOARD ──────────────────────────────────────────────────────
+// (handled in renderDashboard above)
+
+// ─── INKOOP LOG ──────────────────────────────────────────────────────────────
+function renderInkooplog(pc){
+  const purchases=getData("purchases");
+  const rows=[...purchases].reverse().map(p=>{
+    const prod=getProd(p.productId);
+    return `<tr><td>${fmtDate(p.date)}</td><td>${prod?.emoji} ${esc(prod?.name||"")}</td><td>+${p.qty} ${prod?.unit||""}</td></tr>`;
+  }).join("");
+  pc.innerHTML=`<div class="card"><div class="card-title">Inkoop Log</div>
+    ${!purchases.length?'<p class="text-muted">Nog geen leveringen.</p>':`<div class="table-wrap"><table>
+      <thead><tr><th>Datum</th><th>Product</th><th>Hoeveelheid</th></tr></thead>
+      <tbody>${rows}</tbody></table></div>`}
+  </div>`;
+}
+
+// ─── LID SALDO ───────────────────────────────────────────────────────────────
+function renderSaldo(pc){
+  const cu=STATE.currentUser;
+  const orders=getData("orders").filter(o=>o.userId===cu.id);
+  const productTotals={};
+  orders.forEach(o=>o.items.forEach(i=>{ productTotals[i.productId]=(productTotals[i.productId]||0)+i.qty; }));
+  const totalSpent=orders.reduce((s,o)=>s+o.total,0);
+  const openAmt=calcBalance(cu.id);
+  const recent=[...orders].reverse().slice(0,8);
+  const prodRows=PRODUCTS.filter(p=>productTotals[p.id]).map(p=>
+    `<div class="log-item flex flex-between"><span>${p.emoji} ${esc(p.name)}</span><span>${productTotals[p.id]} ${p.unit}</span></div>`).join("");
+  const orderRows=recent.map(o=>
+    `<div class="log-item"><span class="log-time">${fmtDate(o.date)}</span>${o.items.map(i=>`${getProd(i.productId)?.emoji}×${i.qty}`).join(" ")} — ${fmt(o.total)}</div>`).join("");
+  pc.innerHTML=`
+  <div class="stat-grid">
+    <div class="stat-card"><div class="stat-value text-danger">${fmt(openAmt)}</div><div class="stat-label">Openstaand</div></div>
+    <div class="stat-card"><div class="stat-value">${fmt(totalSpent)}</div><div class="stat-label">Totaal besteed</div></div>
+    <div class="stat-card"><div class="stat-value">${orders.length}</div><div class="stat-label">Bestellingen</div></div>
+  </div>
+  <div class="card"><div class="card-title">Totaalconsumptie</div>
+    ${prodRows||'<p class="text-muted">Nog geen consumpties.</p>'}
+  </div>
+  <div class="card"><div class="card-title">Recente Bestellingen</div>
+    ${orderRows||'<p class="text-muted">Geen bestellingen.</p>'}
+  </div>`;
+}
+
+// ─── HISTORIEK ───────────────────────────────────────────────────────────────
+function renderHistoriek(pc){
+  const cu=STATE.currentUser;
+  const orders=[...getData("orders").filter(o=>o.userId===cu.id)].reverse();
+  const rows=orders.map(o=>`<tr>
+    <td>${fmtDate(o.date)}</td>
+    <td>${o.items.map(i=>`${getProd(i.productId)?.emoji} ${esc(getProd(i.productId)?.name||"")} ×${i.qty}`).join(", ")}</td>
+    <td>${fmt(o.total)}</td>
+  </tr>`).join("");
+  pc.innerHTML=`<div class="card"><div class="card-title">Mijn Bestellingen</div>
+    ${!orders.length?'<p class="text-muted">Geen bestellingen.</p>':`<div class="table-wrap"><table>
+      <thead><tr><th>Datum</th><th>Items</th><th>Bedrag</th></tr></thead>
+      <tbody>${rows}</tbody></table></div>`}
+  </div>`;
+}
+
+// ─── PROFIEL ─────────────────────────────────────────────────────────────────
+function renderProfiel(pc){
+  const cu=STATE.currentUser;
+  pc.innerHTML=`
+  <div class="card"><div class="card-title">Mijn Profiel</div>
+    <div class="form-group"><label>Naam</label><input type="text" class="input" style="width:100%" id="p-name" value="${esc(cu.name)}"/></div>
+    <div class="form-group"><label>E-mail</label><input type="email" class="input" style="width:100%" id="p-email" value="${esc(cu.email)}"/></div>
+    <div class="form-group"><label>Nieuw Wachtwoord</label><input type="password" class="input" style="width:100%" id="p-pw"/></div>
+    <button class="btn btn-primary" onclick="saveProfielLid()">Opslaan</button>
+  </div>
+  <div class="card"><div class="card-title">📱 App op Beginscherm</div>
+    <div class="pwa-tip">
+      <strong style="color:var(--gold)">iOS:</strong> Safari → Delen → "Zet op beginscherm"<br><br>
+      <strong style="color:var(--gold)">Android:</strong> Chrome → Menu → "Toevoegen aan beginscherm"<br><br>
+      <div class="flex gap-8 mt-8">
+        <input readonly class="input" style="flex:1;font-size:12px" id="p-url" value="${esc(window.location.href)}"/>
+        <button class="btn btn-secondary" onclick="navigator.clipboard.writeText($('p-url').value);showToast('✓ Gekopieerd')">📋</button>
+      </div>
+    </div>
+  </div>`;
+}
+function saveProfielLid(){
+  const name=($("p-name")||{}).value||STATE.currentUser.name;
+  const email=($("p-email")||{}).value||STATE.currentUser.email;
+  const pw=($("p-pw")||{}).value||"";
+  const users=getData("users").map(u=>u.id===STATE.currentUser.id?{...u,name,email,...(pw?{pw}:{})}:u);
+  setData("users",users);
+  STATE.currentUser={...STATE.currentUser,name,email};
+  showToast("✓ Opgeslagen");
+  renderApp();
+}
+
+// ─── ROUTING PATCH: handle turven page for lid ────────────────────────────────
+const _realRenderApp = renderApp;
+// Override renderApp to inject lid turven
+function renderApp() {
+  const u = STATE.currentUser;
+  if (!u) { renderLogin(); return; }
+  const isAdmin = u.role === "admin";
+  const isBarkeeper = u.isBarkeeper || isAdmin;
+  const isPureLid = !isAdmin && !isBarkeeper;
+
+  const nav = isAdmin ? [
+    { id:"dashboard", label:"Dashboard",    icon:"📊" },
+    { id:"turven",    label:"Turven",       icon:"🍺" },
+    { id:"leden",     label:"Leden & Rollen", icon:"👥" },
+    { id:"betalingen",label:"Betalingen",   icon:"💳" },
+    { id:"voorraad",  label:"Voorraad",     icon:"📦" },
+    { id:"instellingen", label:"Instellingen", icon:"⚙️" },
+  ] : isBarkeeper ? [
+    { id:"dashboard", label:"Dashboard",  icon:"📊" },
+    { id:"turven",    label:"Turven",     icon:"🍺" },
+    { id:"voorraad",  label:"Voorraad",   icon:"📦" },
+    { id:"inkooplog", label:"Inkoop Log", icon:"📋" },
+    { id:"profiel",   label:"Profiel",    icon:"👤" },
+  ] : [
+    { id:"saldo",     label:"Mijn Saldo", icon:"💰" },
+    { id:"historiek", label:"Historiek",  icon:"📜" },
+    { id:"turven",    label:"Turven",     icon:"🍺" },
+    { id:"profiel",   label:"Profiel",    icon:"👤" },
+  ];
+
+  if (!STATE.page) STATE.page = nav[0].id;
+  const alerts = activeAlerts();
+  const pageLabel = (nav.find(n => n.id === STATE.page) || nav[0]).label;
+
+  const sidebarItems = nav.map(item => {
+    const badge = (item.id === "voorraad" && alerts.length > 0)
+      ? `<span class="nav-badge">${alerts.length}</span>` : "";
+    const active = STATE.page === item.id ? " active" : "";
+    return `<button class="nav-item${active}" onclick="navigate('${item.id}')">\
+<span class="icon">${item.icon}</span>${esc(item.label)}${badge}</button>`;
+  }).join("");
+
+  const rolLabel = isAdmin ? "Beheerder" : isBarkeeper ? "Barbeheerder" : "Lid";
+
+  document.body.innerHTML = `
+<div class="app">
+  ${STATE.sidebarOpen ? `<div style="position:fixed;inset:0;z-index:99;background:rgba(0,0,0,.5)" onclick="closeSidebar()"></div>` : ""}
+  <nav class="sidebar${STATE.sidebarOpen ? " open" : ""}">
+    <div class="sidebar-brand">
+      <h1>🎵 ${esc(APP_NAME)}</h1>
+      <div class="subtitle">${rolLabel}</div>
+    </div>
+    <div class="sidebar-nav">${sidebarItems}</div>
+    <div class="sidebar-user">
+      <div class="name">${esc(u.name)}</div>
+      <div class="role">${esc(u.email)}</div>
+      <button class="logout-btn" onclick="doLogout()">Uitloggen</button>
+    </div>
+  </nav>
+  <main class="main">
+    <div class="topbar">
+      <button class="hamburger" onclick="toggleSidebar()">☰</button>
+      <h2>${esc(pageLabel)}</h2>
+    </div>
+    <div class="content" id="page-content"></div>
+  </main>
+</div>`;
+
+  const pc = $("page-content");
+  if (!pc) return;
+  if (STATE.page === "dashboard")       renderDashboard(pc, isAdmin, isBarkeeper);
+  else if (STATE.page === "turven")     { if(isPureLid) renderTurvenLid(pc); else renderTurven(pc, isAdmin, isBarkeeper); }
+  else if (STATE.page === "leden")      renderLeden(pc);
+  else if (STATE.page === "betalingen") renderBetalingen(pc);
+  else if (STATE.page === "voorraad")   renderVoorraad(pc);
+  else if (STATE.page === "instellingen") renderInstellingen(pc);
+  else if (STATE.page === "inkooplog")  renderInkooplog(pc);
+  else if (STATE.page === "saldo")      renderSaldo(pc);
+  else if (STATE.page === "historiek")  renderHistoriek(pc);
+  else if (STATE.page === "profiel")    renderProfiel(pc);
+}
+
+// ─── BOOT ─────────────────────────────────────────────────────────────────────
+initStorage();
+renderApp();
+
+</script>
+
+</body>
+</html>
